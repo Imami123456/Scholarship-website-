@@ -36,7 +36,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({
       style={{
         textDecoration: 'none',
         background: isAffiliate
-          ? 'linear-gradient(135deg, hsl(262, 80%, 97%) 0%, hsl(200, 95%, 97%) 100%)'
+          ? 'linear-gradient(135deg, var(--primary-light) 0%, var(--accent-light) 100%)'
           : 'var(--bg-card)',
         borderColor: isAffiliate ? 'var(--primary)' : 'var(--border-color)',
         borderStyle: isAffiliate ? 'solid' : 'dashed',

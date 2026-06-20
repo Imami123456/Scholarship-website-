@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, DollarSign, Calendar, Star, SlidersHorizontal, RefreshCw } from 'lucide-react';
+import { Search, MapPin, DollarSign, Calendar, Star, SlidersHorizontal, RefreshCw, ArrowRight, Clock } from 'lucide-react';
 import type { Scholarship, SiteStats } from '../types';
 import { updateSEO } from '../utils/seo';
 import AdBanner from '../components/AdBanner';
@@ -68,6 +68,9 @@ export const Home: React.FC<HomeProps> = ({
     const matchesFeatured = !showOnlyFeatured || s.isFeatured;
 
     return matchesSearch && matchesCountry && matchesLevel && matchesFunding && matchesField && matchesFeatured;
+  }).sort((a, b) => {
+    // Match the "Sorted by: Upcoming Deadlines" label — soonest deadlines first
+    return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
   });
 
   // Calculate days left helper
@@ -104,6 +107,65 @@ export const Home: React.FC<HomeProps> = ({
             Find fully funded undergraduate, masters, and PhD scholarships around the world. Up-to-date deadlines, direct official application links, and expert guides.
           </p>
 
+          {/* Hero Search — the primary CTA for a directory product */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              document.getElementById('listings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+            className="glass-panel"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              maxWidth: '640px',
+              margin: '0 auto 1.25rem',
+              padding: '0.5rem 0.5rem 0.5rem 1rem',
+              borderRadius: 'var(--radius-full)',
+              boxShadow: 'var(--shadow-lg)'
+            }}
+          >
+            <Search size={20} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+            <input
+              type="text"
+              aria-label="Search scholarships"
+              placeholder="Search by name, country, or field — e.g. Fulbright, Germany, STEM"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                flex: 1,
+                border: 'none',
+                background: 'transparent',
+                outline: 'none',
+                fontSize: '1rem',
+                color: 'var(--text-main)',
+                fontFamily: 'var(--font-sans)',
+                minWidth: 0
+              }}
+            />
+            <button type="submit" className="btn btn-primary" style={{ borderRadius: 'var(--radius-full)' }}>
+              Search
+            </button>
+          </form>
+
+          {/* Popular search suggestions — reduce friction to first search */}
+          <div className="flex items-center justify-center gap-2" style={{ flexWrap: 'wrap', marginBottom: '2.5rem' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Popular:</span>
+            {['Fully Funded', 'Germany', 'PhD', 'STEM', 'UK'].map((tag) => (
+              <button
+                key={tag}
+                onClick={() => {
+                  setSearchTerm(tag);
+                  document.getElementById('listings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                className="badge badge-primary"
+                style={{ border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+
           {/* Quick Stats Grid */}
           <div 
             className="grid grid-4" 
@@ -119,19 +181,19 @@ export const Home: React.FC<HomeProps> = ({
             }}
           >
             <div style={{ textAlign: 'center', borderRight: '1px solid var(--border-color)' }} className="stat-col">
-              <h3 style={{ fontSize: '2rem', color: 'var(--primary)' }}>{stats.totalScholarships}+</h3>
+              <h3 className="stat-num tabular-nums">{stats.totalScholarships}+</h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Active Listings</p>
             </div>
             <div style={{ textAlign: 'center', borderRight: '1px solid var(--border-color)' }} className="stat-col">
-              <h3 style={{ fontSize: '2rem', color: 'var(--primary)' }}>{stats.totalFundsDisbursed}</h3>
+              <h3 className="stat-num tabular-nums">{stats.totalFundsDisbursed}</h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Est. Total Value</p>
             </div>
             <div style={{ textAlign: 'center', borderRight: '1px solid var(--border-color)' }} className="stat-col">
-              <h3 style={{ fontSize: '2rem', color: 'var(--primary)' }}>{stats.countriesRepresented}+</h3>
+              <h3 className="stat-num tabular-nums">{stats.countriesRepresented}+</h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Countries Available</p>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <h3 style={{ fontSize: '2rem', color: 'var(--primary)' }}>{stats.monthlyTraffic.toLocaleString()}+</h3>
+              <h3 className="stat-num tabular-nums">{stats.monthlyTraffic.toLocaleString()}+</h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Monthly Readers</p>
             </div>
           </div>
@@ -253,7 +315,7 @@ export const Home: React.FC<HomeProps> = ({
           </aside>
 
           {/* Listings Container */}
-          <section className="flex flex-col gap-6">
+          <section className="flex flex-col gap-6" id="listings" style={{ scrollMarginTop: '90px' }}>
             <div className="flex items-center justify-between">
               <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
                 Showing <strong style={{ color: 'var(--text-main)' }}>{filteredScholarships.length}</strong> scholarships
@@ -280,24 +342,27 @@ export const Home: React.FC<HomeProps> = ({
                   const isClosingSoon = daysLeft > 0 && daysLeft <= 60;
                   
                   return (
-                    <article 
-                      key={s.id} 
-                      className={`card card-hover flex flex-col gap-4`} 
-                      style={{ 
-                        cursor: 'pointer',
-                        borderColor: s.isFeatured ? 'var(--primary)' : 'var(--border-color)',
+                    <article
+                      key={s.id}
+                      className={`card card-hover card-accent stagger-item flex flex-col gap-4`}
+                      style={{
+                        borderColor: s.isFeatured ? 'var(--gold)' : 'var(--border-color)',
                         borderWidth: s.isFeatured ? '2px' : '1px'
                       }}
                       onClick={() => onSelectScholarship(s.id)}
                     >
-                      {/* Featured Star Badge */}
+                      {/* Featured Badge */}
                       {s.isFeatured && (
-                        <div style={{ position: 'absolute', right: '12px', top: '12px', color: 'var(--primary)' }} title="Featured Listing">
-                          <Star size={20} fill="var(--primary)" />
+                        <div
+                          className="flex items-center gap-1"
+                          style={{ position: 'absolute', right: '12px', top: '12px', background: 'var(--gold-light)', color: 'var(--gold)', padding: '2px 8px', borderRadius: 'var(--radius-full)', fontSize: '0.7rem', fontWeight: 700 }}
+                          title="Featured Listing"
+                        >
+                          <Star size={12} fill="var(--gold)" /> Featured
                         </div>
                       )}
 
-                      <div className="flex flex-col gap-2" style={{ textAlign: 'left', paddingRight: '2rem' }}>
+                      <div className="flex flex-col gap-2" style={{ textAlign: 'left', paddingRight: s.isFeatured ? '6rem' : '0' }}>
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="badge badge-primary flex items-center gap-1">
                             <MapPin size={12} /> {s.country}
@@ -308,12 +373,17 @@ export const Home: React.FC<HomeProps> = ({
                           <span className="badge badge-warning">
                             {s.degreeLevel}
                           </span>
+                          {isClosingSoon && (
+                            <span className="badge badge-danger flex items-center gap-1">
+                              <Clock size={12} /> Closing soon
+                            </span>
+                          )}
                         </div>
-                        
+
                         <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginTop: '0.25rem' }}>
                           {s.title}
                         </h2>
-                        
+
                         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                           Provided by: <strong style={{ color: 'var(--text-main)' }}>{s.provider}</strong>
                         </p>
@@ -323,10 +393,10 @@ export const Home: React.FC<HomeProps> = ({
                         {s.description}
                       </p>
 
-                      <div 
-                        className="flex items-center justify-between" 
-                        style={{ 
-                          borderTop: '1px solid var(--border-color)', 
+                      <div
+                        className="flex items-center justify-between"
+                        style={{
+                          borderTop: '1px solid var(--border-color)',
                           paddingTop: '1rem',
                           marginTop: '0.5rem',
                           flexWrap: 'wrap',
@@ -338,11 +408,11 @@ export const Home: React.FC<HomeProps> = ({
                           <span>{s.amountDisplay}</span>
                         </div>
 
-                        <div className="flex items-center gap-1.5" style={{ fontSize: '0.85rem' }}>
+                        <div className="flex items-center gap-1.5 tabular-nums" style={{ fontSize: '0.85rem' }}>
                           <Calendar size={14} style={{ color: 'var(--text-muted)' }} />
                           <span style={{ color: 'var(--text-muted)' }}>Deadline:</span>
-                          <span 
-                            style={{ 
+                          <span
+                            style={{
                               fontWeight: 600,
                               color: isClosingSoon ? 'var(--danger)' : 'var(--text-main)'
                             }}
@@ -350,6 +420,10 @@ export const Home: React.FC<HomeProps> = ({
                             {s.deadline} {daysLeft > 0 ? `(${daysLeft} days left)` : '(Expired)'}
                           </span>
                         </div>
+
+                        <span className="flex items-center gap-1 card-cta" style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.875rem' }}>
+                          View details <ArrowRight size={15} />
+                        </span>
                       </div>
                     </article>
                   );
