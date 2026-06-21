@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import SocialBar from './components/SocialBar';
+import CookieConsent from './components/CookieConsent';
+import NotifyPopup from './components/NotifyPopup';
 import Home from './pages/Home';
 import ScholarshipDetails from './pages/ScholarshipDetails';
 import Blog from './pages/Blog';
@@ -213,6 +216,9 @@ function App() {
         {renderContent()}
       </div>
       <Footer setCurrentPage={navigateTo} />
+      <SocialBar />
+      <CookieConsent />
+      <NotifyPopup />
     </>
   );
 }

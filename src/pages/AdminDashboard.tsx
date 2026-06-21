@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Plus, Edit2, Trash2, Download, Upload, Star, Eye, Sparkles, AlertCircle, TrendingUp, DollarSign, Users, Award, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Plus, Edit2, Trash2, Download, Upload, Star, Eye, Sparkles, AlertCircle, TrendingUp, DollarSign, Users, Award, BookOpen, Mail } from 'lucide-react';
 import type { Scholarship, BlogPost, SiteStats } from '../types';
 import { updateSEO } from '../utils/seo';
+import { getSubscribers, removeSubscriber, type Subscriber } from '../config';
 
 interface AdminDashboardProps {
   scholarships: Scholarship[];
@@ -18,7 +19,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateBlogs,
   stats
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'scholarships' | 'blogs'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'scholarships' | 'blogs' | 'subscribers'>('overview');
+
+  // Email subscribers (captured via the "get notified" forms)
+  const [subscribers, setSubscribers] = useState<Subscriber[]>(() => getSubscribers());
   
   // SEO title update
   useEffect(() => {
@@ -48,6 +52,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [sProcess, setSProcess] = useState(''); // new lines
   const [sLink, setSLink] = useState('');
   const [sFeatured, setSFeatured] = useState(false);
+  const [sVideoId, setSVideoId] = useState(''); // YouTube ID or URL for "how to apply" video
 
   // Form states - Blog
   const [isAddingBlog, setIsAddingBlog] = useState(false);
@@ -62,6 +67,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [bGradient, setBGradient] = useState('linear-gradient(135deg, #6366f1 0%, #a855f7 100%)');
   const [bKeywords, setBKeywords] = useState(''); // comma separated
   const [bContent, setBContent] = useState('');
+  const [bVideoId, setBVideoId] = useState(''); // YouTube ID or URL embedded in article
 
   // Notification feedback
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -89,6 +95,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setSProcess(s.process.join('\n'));
     setSLink(s.officialLink);
     setSFeatured(s.isFeatured);
+    setSVideoId(s.videoId || '');
     setIsAddingScholarship(true); // opens panel
   };
 
@@ -110,6 +117,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setSProcess('');
     setSLink('');
     setSFeatured(false);
+    setSVideoId('');
     setIsAddingScholarship(false);
   };
 
@@ -146,7 +154,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             benefits: benefitsArray,
             process: processArray,
             officialLink: sLink,
-            isFeatured: sFeatured
+            isFeatured: sFeatured,
+            videoId: sVideoId.trim() || undefined
           };
         }
         return s;
@@ -173,7 +182,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         officialLink: sLink,
         isFeatured: sFeatured,
         views: 0,
-        createdAt: new Date().toISOString().split('T')[0]
+        createdAt: new Date().toISOString().split('T')[0],
+        videoId: sVideoId.trim() || undefined
       };
       onUpdateScholarships([newScholarship, ...scholarships]);
       showNotification('New scholarship added successfully!');
@@ -202,6 +212,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setBGradient(b.coverGradient);
     setBKeywords(b.seoKeywords.join(', '));
     setBContent(b.content);
+    setBVideoId(b.videoId || '');
     setIsAddingBlog(true); // opens panel
   };
 
@@ -217,6 +228,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setBGradient('linear-gradient(135deg, #6366f1 0%, #a855f7 100%)');
     setBKeywords('');
     setBContent('');
+    setBVideoId('');
     setIsAddingBlog(false);
   };
 
@@ -245,7 +257,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             readTime: bReadTime,
             coverGradient: bGradient,
             seoKeywords: keywordsArray,
-            content: bContent
+            content: bContent,
+            videoId: bVideoId.trim() || undefined
           };
         }
         return b;
@@ -266,7 +279,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         coverGradient: bGradient,
         views: 0,
         seoKeywords: keywordsArray,
-        content: bContent
+        content: bContent,
+        videoId: bVideoId.trim() || undefined
       };
       onUpdateBlogs([newPost, ...blogs]);
       showNotification('New article published successfully!');
@@ -319,6 +333,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           showNotification('Error parsing JSON backup file.', 'error');
         }
       };
+    }
+  };
+
+  // Export subscriber emails as a CSV file
+  const handleExportSubscribers = () => {
+    if (subscribers.length === 0) {
+      showNotification('No subscribers to export yet.', 'error');
+      return;
+    }
+    const rows = [['Email', 'Date Subscribed'], ...subscribers.map(s => [s.email, s.date])];
+    const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const dataStr = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    const a = document.createElement('a');
+    a.setAttribute('href', dataStr);
+    a.setAttribute('download', `subscribers_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    showNotification('Subscriber list exported as CSV.');
+  };
+
+  const handleDeleteSubscriber = (email: string) => {
+    if (window.confirm(`Remove ${email} from your subscriber list?`)) {
+      setSubscribers(removeSubscriber(email));
+      showNotification('Subscriber removed.');
     }
   };
 
@@ -402,6 +441,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           style={{ border: 'none', boxShadow: 'none' }}
         >
           <BookOpen size={15} /> Manage Articles ({blogs.length})
+        </button>
+        <button
+          onClick={() => { setActiveSubTab('subscribers'); setSubscribers(getSubscribers()); }}
+          className={`btn btn-sm ${activeSubTab === 'subscribers' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ border: 'none', boxShadow: 'none' }}
+        >
+          <Mail size={15} /> Subscribers ({subscribers.length})
         </button>
       </div>
 
@@ -630,6 +676,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     onChange={(e) => setSLink(e.target.value)} 
                     className="input" 
                   />
+                </div>
+
+                {/* YouTube Video (optional) */}
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label className="label">YouTube Video — "How to Apply" (optional)</label>
+                  <input
+                    type="text"
+                    placeholder="Paste a YouTube link or video ID, e.g. https://youtu.be/abc123XYZ_8"
+                    value={sVideoId}
+                    onChange={(e) => setSVideoId(e.target.value)}
+                    className="input"
+                  />
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    Embeds your walkthrough video on this scholarship's page (loads only when tapped — data-light).
+                  </span>
                 </div>
 
                 {/* Description */}
@@ -864,6 +925,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   />
                 </div>
 
+                {/* YouTube Video (optional) */}
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label className="label">YouTube Video (optional)</label>
+                  <input
+                    type="text"
+                    placeholder="Paste a YouTube link or video ID to embed in this article"
+                    value={bVideoId}
+                    onChange={(e) => setBVideoId(e.target.value)}
+                    className="input"
+                  />
+                </div>
+
                 {/* Excerpt */}
                 <div className="form-group" style={{ gridColumn: 'span 2' }}>
                   <label className="label">Excerpt / Short Summary * (Meta description text)</label>
@@ -942,6 +1015,63 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <Trash2 size={12} />
                           </button>
                         </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Subscribers Sub-Tab */}
+      {activeSubTab === 'subscribers' && (
+        <section className="flex flex-col gap-6">
+          <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <h3 style={{ fontSize: '1.25rem' }}>Email Subscribers</h3>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                People who asked to be notified when you post new scholarships.
+              </p>
+            </div>
+            <button onClick={handleExportSubscribers} className="btn btn-secondary btn-sm flex items-center gap-1.5">
+              <Download size={14} /> Export CSV
+            </button>
+          </div>
+
+          {subscribers.length === 0 ? (
+            <div className="card text-center" style={{ padding: '3rem 2rem' }}>
+              <Mail size={36} style={{ color: 'var(--text-muted)', margin: '0 auto 1rem' }} />
+              <h4 style={{ marginBottom: '0.5rem' }}>No subscribers yet</h4>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '420px', margin: '0 auto' }}>
+                Emails captured from the homepage signup, the popup, and the footer form will appear here.
+                Tip: connect an email service in <strong>src/config.ts</strong> to also get them delivered to your inbox.
+              </p>
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr style={{ backgroundColor: 'var(--border-color)' }}>
+                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 600 }}>#</th>
+                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 600 }}>Email</th>
+                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 600 }}>Subscribed</th>
+                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 600 }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subscribers.slice().reverse().map((sub, idx) => (
+                    <tr key={sub.email} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '12px', color: 'var(--text-muted)' }}>{subscribers.length - idx}</td>
+                      <td style={{ padding: '12px', fontWeight: 500 }}>{sub.email}</td>
+                      <td style={{ padding: '12px', color: 'var(--text-muted)' }}>
+                        {new Date(sub.date).toLocaleDateString()}
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <button onClick={() => handleDeleteSubscriber(sub.email)} className="btn btn-danger btn-sm" style={{ padding: '4px 8px' }} title="Remove subscriber">
+                          <Trash2 size={12} />
+                        </button>
                       </td>
                     </tr>
                   ))}

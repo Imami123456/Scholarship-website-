@@ -3,6 +3,9 @@ import { ArrowLeft, User, Calendar, Clock, BookOpen, Share2, Eye } from 'lucide-
 import type { BlogPost } from '../types';
 import { updateSEO } from '../utils/seo';
 import AdBanner from '../components/AdBanner';
+import VideoEmbed from '../components/VideoEmbed';
+import ShareButtons from '../components/ShareButtons';
+import { siteConfig } from '../config';
 
 interface BlogPostDetailsProps {
   slug: string;
@@ -283,6 +286,13 @@ export const BlogPostDetails: React.FC<BlogPostDetailsProps> = ({
           {/* Article Banner Ad */}
           <AdBanner format="inline" />
 
+          {/* Video walkthrough (shows only if a video is attached) */}
+          {post.videoId && (
+            <div style={{ marginTop: '2rem' }}>
+              <VideoEmbed video={post.videoId} title={post.title} />
+            </div>
+          )}
+
           {/* Dynamic Article Body */}
           <div className="prose" style={{ marginTop: '2rem' }}>
             {parseMarkdown(post.content)}
@@ -302,26 +312,7 @@ export const BlogPostDetails: React.FC<BlogPostDetailsProps> = ({
             <h4 style={{ fontSize: '1rem' }} className="flex items-center gap-2">
               <Share2 size={16} /> Share this Guide
             </h4>
-            <div className="flex gap-2">
-              <button className="btn btn-secondary btn-sm flex items-center gap-1">
-                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z"/>
-                </svg>
-                Facebook
-              </button>
-              <button className="btn btn-secondary btn-sm flex items-center gap-1">
-                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                </svg>
-                Twitter
-              </button>
-              <button className="btn btn-secondary btn-sm flex items-center gap-1">
-                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                </svg>
-                LinkedIn
-              </button>
-            </div>
+            <ShareButtons title={post.title} />
           </div>
 
           {/* Next/Prev Navigation */}
@@ -367,11 +358,23 @@ export const BlogPostDetails: React.FC<BlogPostDetailsProps> = ({
             <BookOpen size={48} style={{ margin: '0 auto', opacity: 0.8 }} />
             <h3 style={{ fontSize: '1.25rem', color: 'white' }}>Subscribe to Alerts</h3>
             <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)' }}>
-              Never miss a fully funded deadline again. We send direct portal links weekly.
+              Never miss a fully funded deadline again. We send direct portal links straight to your phone.
             </p>
-            <button className="btn btn-secondary btn-sm w-full" style={{ background: 'white', color: 'var(--primary)', border: 'none' }}>
-              Subscribe Free
-            </button>
+            {siteConfig.social.whatsappChannel ? (
+              <a
+                href={siteConfig.social.whatsappChannel}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-sm w-full"
+                style={{ background: 'white', color: '#128C7E', border: 'none', fontWeight: 700 }}
+              >
+                Join WhatsApp Channel
+              </a>
+            ) : (
+              <button className="btn btn-secondary btn-sm w-full" style={{ background: 'white', color: 'var(--primary)', border: 'none' }}>
+                Subscribe Free
+              </button>
+            )}
           </div>
 
           <AdBanner format="sidebar" />

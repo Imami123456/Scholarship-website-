@@ -3,6 +3,8 @@ import { Search, MapPin, DollarSign, Calendar, Star, SlidersHorizontal, RefreshC
 import type { Scholarship, SiteStats } from '../types';
 import { updateSEO } from '../utils/seo';
 import AdBanner from '../components/AdBanner';
+import CommunityCTA from '../components/CommunityCTA';
+import EmailSubscribe from '../components/EmailSubscribe';
 
 interface HomeProps {
   scholarships: Scholarship[];
@@ -433,11 +435,21 @@ export const Home: React.FC<HomeProps> = ({
           </section>
         </div>
 
+        {/* Community / Follow CTA — turns visitors into followers you can reach again */}
+        <div style={{ marginTop: '4rem' }}>
+          <CommunityCTA />
+        </div>
+
+        {/* Email capture — get visitors' emails so you can notify them of new listings */}
+        <div style={{ marginTop: '1.5rem', maxWidth: '640px', marginLeft: 'auto', marginRight: 'auto' }}>
+          <EmailSubscribe />
+        </div>
+
         {/* SEO Keyword Dense Segment */}
-        <section 
-          className="card" 
-          style={{ 
-            marginTop: '5rem', 
+        <section
+          className="card"
+          style={{
+            marginTop: '4rem',
             textAlign: 'left',
             background: 'linear-gradient(180deg, var(--bg-card) 0%, var(--bg-main) 100%)',
             border: '1px solid var(--border-color)'

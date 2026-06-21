@@ -17,6 +17,7 @@ export interface Scholarship {
   isFeatured: boolean;
   views: number;
   createdAt: string;
+  videoId?: string; // Optional YouTube video (ID or full URL) — a "how to apply" walkthrough
 }
 
 export interface BlogPost {
@@ -32,6 +33,7 @@ export interface BlogPost {
   coverGradient: string; // CSS gradient string for beautiful aesthetic cards
   views: number;
   seoKeywords: string[];
+  videoId?: string; // Optional YouTube video (ID or full URL) embedded in the article
 }
 
 export interface FilterState {
