@@ -36,110 +36,145 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentPage }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const activeSocials = FOOTER_SOCIALS.filter(s => s.href);
+
   return (
-    <footer 
+    <footer
       style={{
         backgroundColor: 'var(--bg-card)',
-        borderTop: '1px solid var(--border-color)',
-        padding: '5rem 0 2rem',
         marginTop: 'auto',
-        transition: 'all var(--transition-normal)'
+        transition: 'all var(--transition-normal)',
       }}
     >
-      <div className="container">
-        <div 
-          className="grid grid-4" 
-          style={{ 
+      {/* Gradient accent line */}
+      <hr className="footer-gradient-line" />
+
+      <div className="container" style={{ padding: '4rem 1.5rem 2rem' }}>
+        <div
+          className="grid"
+          style={{
+            gridTemplateColumns: '1.3fr 1fr 1fr 1.2fr',
             gap: '3rem',
-            marginBottom: '4rem',
-            textAlign: 'left'
+            marginBottom: '3.5rem',
+            textAlign: 'left',
           }}
+          id="footer-grid"
         >
-          {/* Brand Info */}
+          {/* Brand */}
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2" style={{ cursor: 'pointer' }} onClick={() => handleNav('home')}>
-              <div 
-                className="flex items-center justify-center" 
-                style={{ 
-                  width: '32px', 
-                  height: '32px', 
+            <div
+              className="flex items-center gap-2"
+              style={{ cursor: 'pointer' }}
+              onClick={() => handleNav('home')}
+            >
+              <div
+                className="flex items-center justify-center"
+                style={{
+                  width: '34px',
+                  height: '34px',
                   borderRadius: 'var(--radius-sm)',
-                  background: 'linear-gradient(135deg, var(--primary) 0%, hsl(200, 95%, 45%) 100%)',
-                  color: 'white'
+                  background: 'var(--gradient-brand)',
+                  color: 'white',
                 }}
               >
                 <GraduationCap size={18} />
               </div>
-              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.2rem' }}>
+              <span style={{
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 800,
+                fontSize: '1.15rem',
+                background: 'var(--gradient-brand)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>
                 ScholarSphere
               </span>
             </div>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Empowering students globally by providing aggregated scholarship directories, application guides, and professional advice completely free.
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
+              Empowering students globally by providing aggregated scholarship directories, application guides, and professional advice — completely free.
             </p>
-            <div className="flex gap-3" style={{ marginTop: '0.5rem' }}>
-              {FOOTER_SOCIALS.filter(s => s.href).map(s => (
-                <a
-                  key={s.key}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={s.label}
-                  title={s.label}
-                  className="btn btn-secondary flex items-center justify-center"
-                  style={{ width: '36px', height: '36px', padding: 0, borderRadius: 'var(--radius-sm)' }}
-                >
-                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d={s.path} />
-                  </svg>
-                </a>
-              ))}
-            </div>
+            {activeSocials.length > 0 && (
+              <div className="flex gap-2" style={{ marginTop: '0.25rem' }}>
+                {activeSocials.map(s => (
+                  <a
+                    key={s.key}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                    title={s.label}
+                    className="footer-social-icon"
+                  >
+                    <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d={s.path} />
+                    </svg>
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Quick Categories */}
           <div className="flex flex-col gap-4">
-            <h4 style={{ fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-main)' }}>
+            <h4 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, color: 'var(--text-main)' }}>
               Scholarships
             </h4>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); handleNav('home'); }} className="nav-link" style={{ padding: 0 }}>Fully Funded Masters</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); handleNav('home'); }} className="nav-link" style={{ padding: 0 }}>PhD Fellowships</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); handleNav('home'); }} className="nav-link" style={{ padding: 0 }}>Undergraduate Grants</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); handleNav('home'); }} className="nav-link" style={{ padding: 0 }}>Study in USA / UK / Germany</a></li>
+            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.85rem' }}>
+              {['Fully Funded Masters', 'PhD Fellowships', 'Undergraduate Grants', 'Study in USA / UK / Germany'].map(item => (
+                <li key={item}>
+                  <a
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); handleNav('home'); }}
+                    style={{ color: 'var(--text-muted)', transition: 'color var(--transition-fast)' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--primary)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                  >
+                    {item}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Guides & Resources */}
+          {/* Guides */}
           <div className="flex flex-col gap-4">
-            <h4 style={{ fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-main)' }}>
-              Application Resources
+            <h4 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, color: 'var(--text-main)' }}>
+              Resources
             </h4>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); handleNav('blog'); }} className="nav-link" style={{ padding: 0 }}>Motivation Letter Guides</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); handleNav('blog'); }} className="nav-link" style={{ padding: 0 }}>Academic CV Formats</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); handleNav('blog'); }} className="nav-link" style={{ padding: 0 }}>Recommendation Letter Tips</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); handleNav('blog'); }} className="nav-link" style={{ padding: 0 }}>Interview Preparation Q&As</a></li>
+            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.85rem' }}>
+              {['Motivation Letter Guides', 'Academic CV Formats', 'Recommendation Letter Tips', 'Interview Preparation Q&As'].map(item => (
+                <li key={item}>
+                  <a
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); handleNav('blog'); }}
+                    style={{ color: 'var(--text-muted)', transition: 'color var(--transition-fast)' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--primary)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                  >
+                    {item}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Newsletter Form */}
+          {/* Newsletter */}
           <div className="flex flex-col gap-4">
-            <h4 style={{ fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-main)' }}>
-              Earn Alerts
+            <h4 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, color: 'var(--text-main)' }}>
+              Stay Updated
             </h4>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Subscribe to get weekly notifications when top fully funded scholarships open for application.
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+              Get weekly alerts when new fully funded scholarships open.
             </p>
             {subscribed ? (
-              <div 
-                className="badge badge-success animate-fade-in" 
-                style={{ padding: '0.75rem', borderRadius: 'var(--radius-md)', width: '100%', justifyContent: 'center' }}
+              <div
+                className="badge badge-success animate-fade-in"
+                style={{ padding: '0.75rem', borderRadius: 'var(--radius-sm)', width: '100%', justifyContent: 'center' }}
               >
-                Subscription Active! Check your inbox.
+                ✓ Subscribed! Check your inbox.
               </div>
             ) : (
-              <form onSubmit={handleSubscribe} className="flex gap-2" style={{ position: 'relative' }}>
+              <form onSubmit={handleSubscribe} style={{ position: 'relative' }}>
                 <input
                   type="email"
                   placeholder="name@email.com"
@@ -147,7 +182,7 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentPage }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input"
-                  style={{ paddingRight: '45px', fontSize: '0.875rem' }}
+                  style={{ paddingRight: '48px', fontSize: '0.82rem' }}
                 />
                 <button
                   type="submit"
@@ -158,7 +193,8 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentPage }) => {
                     top: '4px',
                     bottom: '4px',
                     padding: '0 0.75rem',
-                    borderRadius: 'var(--radius-sm)'
+                    borderRadius: 'var(--radius-xs)',
+                    minWidth: '38px',
                   }}
                 >
                   <ArrowRight size={16} />
@@ -168,30 +204,52 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentPage }) => {
           </div>
         </div>
 
-        {/* Legal and Made with Love */}
-        <div 
-          className="flex flex-col md-row items-center justify-between"
+        {/* Bottom bar */}
+        <div
+          className="flex items-center justify-between"
           style={{
             borderTop: '1px solid var(--border-color)',
-            paddingTop: '2rem',
-            fontSize: '0.85rem',
+            paddingTop: '1.5rem',
+            fontSize: '0.8rem',
             color: 'var(--text-muted)',
-            gap: '1rem'
+            flexWrap: 'wrap',
+            gap: '1rem',
           }}
         >
-          <div>
-            &copy; {new Date().getFullYear()} ScholarSphere. All rights reserved.
-          </div>
+          <div>&copy; {new Date().getFullYear()} ScholarSphere. All rights reserved.</div>
           <div className="flex items-center gap-1">
-            Made with <Heart size={14} style={{ color: 'var(--danger)', fill: 'var(--danger)' }} /> for international student support.
+            Made with <Heart size={13} style={{ color: 'var(--danger)', fill: 'var(--danger)' }} /> for students worldwide.
           </div>
           <div className="flex gap-4">
-            <a href="#" onClick={(e) => e.preventDefault()} style={{ textDecoration: 'underline' }}>Privacy Policy</a>
-            <a href="#" onClick={(e) => e.preventDefault()} style={{ textDecoration: 'underline' }}>Terms of Service</a>
-            <a href="#" onClick={(e) => e.preventDefault()} style={{ textDecoration: 'underline' }}>Disclaimer</a>
+            {['Privacy Policy', 'Terms of Service', 'Disclaimer'].map(link => (
+              <a
+                key={link}
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                style={{ color: 'var(--text-muted)', transition: 'color var(--transition-fast)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--primary)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+              >
+                {link}
+              </a>
+            ))}
           </div>
         </div>
       </div>
+
+      {/* Responsive */}
+      <style>{`
+        @media (max-width: 900px) {
+          #footer-grid {
+            grid-template-columns: 1fr 1fr !important;
+          }
+        }
+        @media (max-width: 560px) {
+          #footer-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </footer>
   );
 };

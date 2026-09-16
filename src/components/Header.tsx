@@ -13,6 +13,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, setCurrentPage }) =
   });
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     if (darkMode) {
@@ -24,14 +25,19 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, setCurrentPage }) =
     }
   }, [darkMode]);
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+  // Track scroll for header shrink/shadow
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const toggleDarkMode = () => setDarkMode(!darkMode);
 
   const navItems = [
-    { id: 'home', label: 'Find Scholarships', icon: Search },
-    { id: 'blog', label: 'Guides & Articles', icon: BookOpen },
-    { id: 'admin', label: 'Admin Panel', icon: LayoutDashboard },
+    { id: 'home', label: 'Scholarships', icon: Search },
+    { id: 'blog', label: 'Guides', icon: BookOpen },
+    { id: 'admin', label: 'Admin', icon: LayoutDashboard },
   ];
 
   const handleNavClick = (pageId: string) => {
@@ -40,84 +46,80 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, setCurrentPage }) =
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const isActive = (id: string) => {
+    if (id === 'home' && (currentPage === 'home' || currentPage === 'details')) return true;
+    if (id === 'blog' && (currentPage === 'blog' || currentPage === 'blog-details')) return true;
+    return currentPage === id;
+  };
+
   return (
-    <header 
+    <header
       className="glass-panel"
       style={{
         position: 'sticky',
         top: 0,
         zIndex: 50,
         borderBottom: '1px solid var(--border-color)',
-        transition: 'all var(--transition-normal)'
+        transition: 'all var(--transition-normal)',
+        ...(scrolled ? { boxShadow: 'var(--shadow-md)' } : {})
       }}
     >
-      <div className="container flex items-center justify-between" style={{ height: '70px' }}>
+      <div className="container flex items-center justify-between" style={{ height: '68px' }}>
         {/* Logo */}
-        <div 
-          className="flex items-center gap-2" 
+        <div
+          className="flex items-center gap-3"
           onClick={() => handleNavClick('home')}
           style={{ cursor: 'pointer', userSelect: 'none' }}
         >
-          <div 
-            className="flex items-center justify-center" 
-            style={{ 
-              width: '40px', 
-              height: '40px', 
+          <div
+            className="flex items-center justify-center"
+            style={{
+              width: '42px',
+              height: '42px',
               borderRadius: 'var(--radius-sm)',
-              background: 'linear-gradient(135deg, var(--primary) 0%, hsl(200, 95%, 45%) 100%)',
-              color: 'white'
+              background: 'var(--gradient-brand)',
+              color: 'white',
+              boxShadow: 'var(--shadow-sm), var(--shadow-glow)',
+              transition: 'transform var(--transition-fast)',
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08) rotate(-3deg)')}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1) rotate(0deg)')}
           >
             <GraduationCap size={24} />
           </div>
-          <div>
-            <span 
-              style={{ 
-                fontFamily: 'var(--font-heading)', 
-                fontWeight: 800, 
-                fontSize: '1.35rem', 
-                letterSpacing: '-0.02em',
-                background: 'linear-gradient(135deg, var(--text-main) 60%, var(--primary) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}
-            >
-              ScholarSphere
-            </span>
-            <span 
-              className="badge badge-success" 
-              style={{ 
-                fontSize: '0.65rem', 
-                padding: '1px 6px', 
-                marginLeft: '8px', 
-                verticalAlign: 'middle'
-              }}
-            >
-              v1.2
-            </span>
-          </div>
+          <span
+            style={{
+              fontFamily: 'var(--font-heading)',
+              fontWeight: 800,
+              fontSize: '1.35rem',
+              letterSpacing: '-0.02em',
+              background: 'var(--gradient-brand)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            ScholarSphere
+          </span>
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="flex items-center gap-6" style={{ display: 'none' }} id="desktop-nav">
-          <ul className="flex items-center gap-2" style={{ listStyle: 'none' }}>
+        <nav className="flex items-center gap-4" style={{ display: 'none' }} id="desktop-nav">
+          <ul className="flex items-center gap-1" style={{ listStyle: 'none' }}>
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentPage === item.id || 
-                (item.id === 'home' && currentPage === 'details') ||
-                (item.id === 'blog' && currentPage === 'blog-details');
-              
+              const active = isActive(item.id);
+
               return (
                 <li key={item.id}>
                   <button
                     onClick={() => handleNavClick(item.id)}
-                    className={`nav-link flex items-center gap-1.5 btn btn-sm`}
+                    className={`nav-link flex items-center gap-2 btn btn-sm ${active ? 'active' : ''}`}
                     style={{
-                      background: isActive ? 'var(--primary-light)' : 'transparent',
-                      color: isActive ? 'var(--primary)' : 'var(--text-muted)',
+                      background: 'transparent',
                       border: 'none',
                       boxShadow: 'none',
-                      fontWeight: isActive ? 600 : 500
+                      color: active ? 'var(--primary)' : 'var(--text-muted)',
+                      fontWeight: active ? 600 : 500,
                     }}
                   >
                     <Icon size={16} />
@@ -128,79 +130,105 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, setCurrentPage }) =
             })}
           </ul>
 
-          <div style={{ height: '24px', width: '1px', backgroundColor: 'var(--border-color)' }}></div>
+          <div style={{ height: '24px', width: '1px', backgroundColor: 'var(--border-color)' }} />
 
           {/* Theme Toggle */}
-          <button 
+          <button
             onClick={toggleDarkMode}
             className="btn btn-secondary btn-sm flex items-center justify-center"
-            style={{ width: '36px', height: '36px', padding: 0 }}
+            style={{
+              width: '38px',
+              height: '38px',
+              padding: 0,
+              borderRadius: 'var(--radius-sm)',
+              overflow: 'hidden',
+            }}
             title="Toggle theme"
             id="theme-toggle"
           >
-            {darkMode ? <Sun size={18} style={{ color: 'var(--warning)' }} /> : <Moon size={18} style={{ color: 'var(--primary)' }} />}
+            <div
+              style={{
+                transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                transform: darkMode ? 'rotate(180deg)' : 'rotate(0deg)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {darkMode
+                ? <Sun size={18} style={{ color: 'var(--warning)' }} />
+                : <Moon size={18} style={{ color: 'var(--primary)' }} />
+              }
+            </div>
           </button>
         </nav>
 
-        {/* Mobile menu triggers */}
-        <div className="flex items-center gap-3" id="mobile-controls" style={{ display: 'none' }}>
-          <button 
+        {/* Mobile Controls */}
+        <div className="flex items-center gap-2" id="mobile-controls" style={{ display: 'none' }}>
+          <button
             onClick={toggleDarkMode}
             className="btn btn-secondary btn-sm flex items-center justify-center"
-            style={{ width: '36px', height: '36px', padding: 0 }}
+            style={{ width: '38px', height: '38px', padding: 0, borderRadius: 'var(--radius-sm)' }}
             title="Toggle theme"
           >
-            {darkMode ? <Sun size={18} style={{ color: 'var(--warning)' }} /> : <Moon size={18} style={{ color: 'var(--primary)' }} />}
+            {darkMode
+              ? <Sun size={18} style={{ color: 'var(--warning)' }} />
+              : <Moon size={18} style={{ color: 'var(--primary)' }} />
+            }
           </button>
 
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="btn btn-secondary btn-sm flex items-center justify-center"
-            style={{ width: '36px', height: '36px', padding: 0 }}
+            style={{ width: '38px', height: '38px', padding: 0, borderRadius: 'var(--radius-sm)' }}
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Navigation Dropdown */}
+      {/* Mobile Full-Screen Menu */}
       {mobileMenuOpen && (
-        <div 
-          className="glass-panel animate-fade-in"
+        <div
+          className="animate-fade-in"
           style={{
-            position: 'absolute',
-            top: '71px',
+            position: 'fixed',
+            top: '69px',
             left: 0,
-            width: '100%',
-            borderBottom: '1px solid var(--border-color)',
-            padding: '1.5rem',
-            boxShadow: 'var(--shadow-lg)'
+            right: 0,
+            bottom: 0,
+            background: 'var(--bg-glass-strong)',
+            backdropFilter: 'blur(24px) saturate(1.4)',
+            WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
+            zIndex: 49,
+            padding: '2rem 1.5rem',
           }}
         >
-          <ul className="flex flex-col gap-3" style={{ listStyle: 'none' }}>
+          <ul className="flex flex-col gap-2" style={{ listStyle: 'none' }}>
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentPage === item.id || 
-                (item.id === 'home' && currentPage === 'details') ||
-                (item.id === 'blog' && currentPage === 'blog-details');
+              const active = isActive(item.id);
               return (
                 <li key={item.id}>
                   <button
                     onClick={() => handleNavClick(item.id)}
-                    className="flex items-center gap-3"
+                    className="flex items-center gap-4 w-full"
                     style={{
                       width: '100%',
-                      padding: '0.75rem 1rem',
+                      padding: '1.25rem 1.5rem',
                       borderRadius: 'var(--radius-md)',
-                      border: 'none',
-                      background: isActive ? 'var(--primary-light)' : 'transparent',
-                      color: isActive ? 'var(--primary)' : 'var(--text-main)',
-                      fontWeight: isActive ? 600 : 500,
-                      fontSize: '1rem',
-                      textAlign: 'left'
+                      border: active ? '1.5px solid var(--primary)' : '1.5px solid var(--border-color)',
+                      background: active ? 'var(--primary-light)' : 'var(--bg-card)',
+                      color: active ? 'var(--primary)' : 'var(--text-main)',
+                      fontWeight: active ? 700 : 500,
+                      fontSize: '1.1rem',
+                      fontFamily: 'var(--font-sans)',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-fast)',
                     }}
                   >
-                    <Icon size={18} />
+                    <Icon size={22} />
                     {item.label}
                   </button>
                 </li>
@@ -210,7 +238,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, setCurrentPage }) =
         </div>
       )}
 
-      {/* Embedded CSS for responsive navbar navigation */}
+      {/* Responsive CSS */}
       <style>{`
         @media (min-width: 769px) {
           #desktop-nav { display: flex !important; }

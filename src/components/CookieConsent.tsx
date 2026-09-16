@@ -1,67 +1,70 @@
-import React, { useEffect, useState } from 'react';
-import { Cookie } from 'lucide-react';
+import React, { useState } from 'react';
+import { Shield, X } from 'lucide-react';
 
-const KEY = 'cookie_consent';
-
-/**
- * Cookie consent banner. Remembers the choice in localStorage so it only shows
- * once. Sits above other content (z-index 200) so it's never blocked.
- */
 export const CookieConsent: React.FC = () => {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(() => {
+    return !localStorage.getItem('cookieConsent');
+  });
 
-  useEffect(() => {
-    try {
-      if (!localStorage.getItem(KEY)) setVisible(true);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const decide = (choice: 'accepted' | 'declined') => {
-    try {
-      localStorage.setItem(KEY, choice);
-    } catch {
-      /* ignore */
-    }
+  const accept = () => {
+    localStorage.setItem('cookieConsent', 'true');
     setVisible(false);
   };
 
   if (!visible) return null;
 
   return (
-    <div
-      className="glass-panel animate-slide-up"
-      role="dialog"
-      aria-label="Cookie consent"
-      style={{
-        position: 'fixed',
-        bottom: '1rem',
-        left: '1rem',
-        right: '1rem',
-        zIndex: 200,
-        maxWidth: '720px',
-        margin: '0 auto',
-        borderRadius: 'var(--radius-lg)',
-        padding: '1.25rem 1.5rem',
-        boxShadow: 'var(--shadow-lg)',
-        border: '1px solid var(--border-color)',
-      }}
-    >
-      <div className="flex items-center gap-4" style={{ flexWrap: 'wrap' }}>
-        <div className="flex items-center gap-3" style={{ flex: 1, minWidth: '240px' }}>
-          <Cookie size={26} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>
-            We use cookies to remember your theme and understand how visitors use the site. See our{' '}
-            <a href="#" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Privacy Policy</a>.
+    <>
+      <div
+        className="animate-slide-up"
+        style={{
+          position: 'fixed',
+          bottom: '1.5rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 70,
+          maxWidth: '520px',
+          width: 'calc(100% - 2rem)',
+          background: 'var(--bg-glass-strong)',
+          backdropFilter: 'blur(24px) saturate(1.3)',
+          WebkitBackdropFilter: 'blur(24px) saturate(1.3)',
+          border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '1.25rem 1.5rem',
+          boxShadow: 'var(--shadow-xl)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+        }}
+      >
+        <Shield size={22} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-main)', lineHeight: '1.5', fontWeight: 500 }}>
+            We use cookies to improve your experience.
+          </p>
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+            By continuing to use this site, you agree to our cookie policy.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => decide('declined')} className="btn btn-secondary btn-sm">Decline</button>
-          <button onClick={() => decide('accepted')} className="btn btn-primary btn-sm">Accept</button>
+          <button
+            onClick={accept}
+            className="btn btn-primary btn-sm"
+            style={{ borderRadius: 'var(--radius-sm)', padding: '0.4rem 1rem', fontSize: '0.78rem' }}
+          >
+            Accept
+          </button>
+          <button
+            onClick={() => setVisible(false)}
+            className="btn btn-ghost btn-sm"
+            style={{ padding: '0.35rem' }}
+            aria-label="Dismiss cookie notice"
+          >
+            <X size={16} />
+          </button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
