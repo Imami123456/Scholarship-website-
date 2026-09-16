@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Calendar, User, Clock, ArrowRight, BookOpen } from 'lucide-react';
+import { Search, Calendar, User, Clock, ArrowRight, BookOpen, Sparkles } from 'lucide-react';
 import type { BlogPost } from '../types';
 import { updateSEO } from '../utils/seo';
 import AdBanner from '../components/AdBanner';
@@ -43,38 +43,49 @@ export const Blog: React.FC<BlogProps> = ({ blogs, onSelectBlog }) => {
     return matchesSearch && matchesCategory;
   });
 
+  // Featured article (first one) — gets hero treatment
+  const featuredArticle = filteredBlogs.length > 0 ? filteredBlogs[0] : null;
+  const restArticles = filteredBlogs.length > 1 ? filteredBlogs.slice(1) : [];
+
   return (
     <div className="container animate-fade-in" style={{ padding: '3rem 1.5rem 5rem', textAlign: 'left' }}>
-      
-      {/* Header and description */}
-      <section style={{ maxWidth: '800px', marginBottom: '3rem' }}>
-        <span 
-          className="badge badge-primary" 
-          style={{ marginBottom: '1rem', padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+
+      {/* Header */}
+      <section style={{ maxWidth: '760px', marginBottom: '2.5rem' }}>
+        <span
+          className="badge"
+          style={{
+            marginBottom: '1rem',
+            padding: '0.45rem 0.9rem',
+            fontSize: '0.78rem',
+            background: 'var(--gradient-brand)',
+            color: 'var(--text-light)',
+          }}
         >
-          📚 ScholarSphere Library
+          <Sparkles size={12} /> ScholarSphere Library
         </span>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1rem', color: 'var(--text-main)' }}>
+        <h1 style={{ fontSize: '2.4rem', fontWeight: 900, marginBottom: '0.75rem', lineHeight: '1.15', letterSpacing: '-0.03em' }}>
           Scholarship Guides & Resources
         </h1>
-        <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)' }}>
-          Get detailed insights and actionable blueprints written by successful scholars and admissions advisors to help you win fully funded international opportunities.
+        <p style={{ fontSize: '1.05rem', color: 'var(--text-muted)', lineHeight: '1.7' }}>
+          Actionable blueprints written by successful scholars and admissions advisors to help you win fully funded international opportunities.
         </p>
       </section>
 
-      {/* Search and Category filters */}
-      <div 
-        className="flex flex-col md-row items-center justify-between gap-4"
+      {/* Search & Category Filters */}
+      <div
+        className="flex items-center justify-between"
         style={{
           borderBottom: '1px solid var(--border-color)',
-          paddingBottom: '2rem',
+          paddingBottom: '1.5rem',
           marginBottom: '2rem',
-          flexWrap: 'wrap'
+          flexWrap: 'wrap',
+          gap: '1rem',
         }}
         id="blog-controls"
       >
         {/* Search */}
-        <div style={{ position: 'relative', width: '100%', maxWidth: '360px' }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: '340px' }}>
           <input
             type="text"
             placeholder="Search guides (e.g. CV, SOP)..."
@@ -83,23 +94,16 @@ export const Blog: React.FC<BlogProps> = ({ blogs, onSelectBlog }) => {
             className="input"
             style={{ paddingLeft: '2.5rem' }}
           />
-          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
         </div>
 
         {/* Category Pills */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2" style={{ flexWrap: 'wrap', overflowX: 'auto' }}>
           {categories.map(cat => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className="btn btn-sm"
-              style={{
-                background: selectedCategory === cat ? 'var(--primary)' : 'var(--bg-card)',
-                color: selectedCategory === cat ? 'var(--text-light)' : 'var(--text-muted)',
-                borderColor: selectedCategory === cat ? 'var(--primary)' : 'var(--border-color)',
-                borderWidth: '1px',
-                borderStyle: 'solid'
-              }}
+              className={`category-pill ${selectedCategory === cat ? 'active' : ''}`}
             >
               {cat}
             </button>
@@ -107,94 +111,151 @@ export const Blog: React.FC<BlogProps> = ({ blogs, onSelectBlog }) => {
         </div>
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: '2.5rem' }} id="blog-layout">
-        
-        {/* Blog Posts Grid */}
+      {/* Content Layout */}
+      <div className="grid" style={{ gridTemplateColumns: '1fr 280px', gap: '2.5rem' }} id="blog-layout">
+
+        {/* Blog Grid */}
         <main>
           {filteredBlogs.length === 0 ? (
-            <div className="card text-center" style={{ padding: '4rem 2rem' }}>
+            <div className="card" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📚</div>
               <h3>No Guides Found</h3>
               <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Try refining your keywords or selecting a different category.</p>
             </div>
           ) : (
-            <div className="grid grid-2" style={{ gap: '2rem' }} id="blog-grid">
-              {filteredBlogs.map(post => (
-                <article 
-                  key={post.id}
-                  className="card card-hover flex flex-col justify-between"
+            <div className="flex flex-col gap-6">
+              {/* Featured Hero Article */}
+              {featuredArticle && (
+                <article
+                  className="card card-hover"
                   style={{ cursor: 'pointer', padding: 0, overflow: 'hidden' }}
-                  onClick={() => onSelectBlog(post.slug)}
+                  onClick={() => onSelectBlog(featuredArticle.slug)}
                 >
-                  <div>
-                    {/* Header Image Gradient */}
-                    <div 
-                      style={{ 
-                        height: '140px', 
-                        background: post.coverGradient, 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        color: 'white',
-                        position: 'relative'
+                  <div
+                    className="blog-card-header"
+                    style={{ background: featuredArticle.coverGradient, height: '200px' }}
+                  >
+                    <BookOpen size={56} opacity={0.15} style={{ zIndex: 1 }} />
+                    <span
+                      className="badge"
+                      style={{
+                        position: 'absolute',
+                        bottom: '16px',
+                        left: '20px',
+                        zIndex: 1,
+                        backgroundColor: 'var(--bg-card)',
+                        color: 'var(--text-main)',
+                        boxShadow: 'var(--shadow-sm)',
+                        padding: '0.35rem 0.8rem',
                       }}
                     >
-                      <BookOpen size={40} opacity={0.3} />
-                      <span 
-                        className="badge badge-success"
-                        style={{
-                          position: 'absolute',
-                          bottom: '12px',
-                          left: '16px',
-                          backgroundColor: 'var(--bg-card)',
-                          color: 'var(--text-main)',
-                          boxShadow: 'var(--shadow-sm)'
-                        }}
-                      >
-                        {post.category}
-                      </span>
-                    </div>
-
-                    {/* Content */}
-                    <div style={{ padding: '1.5rem 1.5rem 1rem' }}>
-                      <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.75rem', lineHeight: '1.3' }}>
-                        {post.title}
-                      </h3>
-                      <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                        {post.excerpt}
-                      </p>
-                    </div>
+                      {featuredArticle.category}
+                    </span>
                   </div>
-
-                  {/* Metadata bottom footer */}
-                  <div 
-                    className="flex justify-between items-center"
-                    style={{
-                      padding: '1rem 1.5rem 1.5rem',
-                      borderTop: '1px solid var(--border-color)',
-                      fontSize: '0.8rem',
-                      color: 'var(--text-muted)'
-                    }}
-                  >
-                    <div className="flex flex-col gap-1">
-                      <span className="flex items-center gap-1"><User size={12} /> {post.author}</span>
-                      <span className="flex items-center gap-1"><Calendar size={12} /> {post.publishedAt}</span>
-                    </div>
-                    <div className="flex items-center gap-1" style={{ color: 'var(--primary)', fontWeight: 600 }}>
-                      <Clock size={12} /> {post.readTime}
+                  <div style={{ padding: '1.75rem' }}>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.75rem', lineHeight: '1.25' }}>
+                      {featuredArticle.title}
+                    </h2>
+                    <p style={{ fontSize: '0.92rem', color: 'var(--text-muted)', lineHeight: '1.65', marginBottom: '1.25rem' }}>
+                      {featuredArticle.excerpt}
+                    </p>
+                    <div className="flex items-center justify-between" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      <div className="flex items-center gap-4">
+                        <span className="flex items-center gap-1"><User size={13} /> {featuredArticle.author}</span>
+                        <span className="flex items-center gap-1"><Calendar size={13} /> {featuredArticle.publishedAt}</span>
+                      </div>
+                      <span className="flex items-center gap-1" style={{ color: 'var(--primary)', fontWeight: 600 }}>
+                        Read guide <ArrowRight size={14} />
+                      </span>
                     </div>
                   </div>
                 </article>
-              ))}
+              )}
+
+              {/* Rest of the articles */}
+              <div className="grid grid-2" style={{ gap: '1.5rem' }} id="blog-grid">
+                {restArticles.map(post => (
+                  <article
+                    key={post.id}
+                    className="card card-hover card-accent flex flex-col justify-between"
+                    style={{ cursor: 'pointer', padding: 0, overflow: 'hidden' }}
+                    onClick={() => onSelectBlog(post.slug)}
+                  >
+                    <div>
+                      <div
+                        className="blog-card-header"
+                        style={{ background: post.coverGradient, height: '130px' }}
+                      >
+                        <BookOpen size={36} opacity={0.15} style={{ zIndex: 1 }} />
+                        <span
+                          className="badge"
+                          style={{
+                            position: 'absolute',
+                            bottom: '12px',
+                            left: '14px',
+                            zIndex: 1,
+                            backgroundColor: 'var(--bg-card)',
+                            color: 'var(--text-main)',
+                            boxShadow: 'var(--shadow-sm)',
+                            fontSize: '0.7rem',
+                          }}
+                        >
+                          {post.category}
+                        </span>
+                      </div>
+                      <div style={{ padding: '1.25rem 1.25rem 0.75rem' }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem', lineHeight: '1.3' }}>
+                          {post.title}
+                        </h3>
+                        <p style={{
+                          fontSize: '0.85rem', color: 'var(--text-muted)',
+                          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                          lineHeight: '1.55',
+                        }}>
+                          {post.excerpt}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div
+                      className="flex justify-between items-center"
+                      style={{
+                        padding: '0.75rem 1.25rem 1.25rem',
+                        borderTop: '1px solid var(--border-color)',
+                        marginTop: '0.5rem',
+                        fontSize: '0.75rem',
+                        color: 'var(--text-muted)',
+                      }}
+                    >
+                      <div className="flex flex-col gap-1">
+                        <span className="flex items-center gap-1"><User size={11} /> {post.author}</span>
+                        <span className="flex items-center gap-1"><Calendar size={11} /> {post.publishedAt}</span>
+                      </div>
+                      <span className="flex items-center gap-1" style={{ color: 'var(--primary)', fontWeight: 600 }}>
+                        <Clock size={11} /> {post.readTime}
+                      </span>
+                    </div>
+                  </article>
+                ))}
+              </div>
             </div>
           )}
         </main>
 
-        {/* Sidebar Ads & Call to Action */}
+        {/* Sidebar */}
         <aside className="flex flex-col gap-6">
-          
-          <div className="card" style={{ background: 'var(--primary-light)', borderColor: 'var(--primary)' }}>
-            <h3 style={{ fontSize: '1.15rem', color: 'var(--primary)', marginBottom: '0.5rem' }}>Want free templates?</h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
+          <div
+            className="card"
+            style={{
+              background: 'var(--primary-light)',
+              borderColor: 'var(--primary)',
+              borderWidth: '1.5px',
+            }}
+          >
+            <h3 style={{ fontSize: '1.05rem', color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 700 }}>
+              Free templates
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '1rem', lineHeight: '1.6' }}>
               Get copy-paste blueprints for email pitches, reference request templates, and SOP checklists.
             </p>
             <button className="btn btn-primary btn-sm w-full flex items-center justify-center gap-1">
@@ -203,25 +264,16 @@ export const Blog: React.FC<BlogProps> = ({ blogs, onSelectBlog }) => {
           </div>
 
           <AdBanner format="sidebar" />
-
         </aside>
-
       </div>
 
       <style>{`
         @media (max-width: 900px) {
-          #blog-layout {
-            grid-template-columns: 1fr !important;
-          }
+          #blog-layout { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 600px) {
-          #blog-grid {
-            grid-template-columns: 1fr !important;
-          }
-          #blog-controls {
-            flex-direction: column !important;
-            align-items: stretch !important;
-          }
+          #blog-grid { grid-template-columns: 1fr !important; }
+          #blog-controls { flex-direction: column !important; align-items: stretch !important; }
         }
       `}</style>
     </div>

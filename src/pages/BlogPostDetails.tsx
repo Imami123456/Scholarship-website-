@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { ArrowLeft, User, Calendar, Clock, BookOpen, Share2, Eye } from 'lucide-react';
 import type { BlogPost } from '../types';
 import { updateSEO } from '../utils/seo';
@@ -23,8 +23,9 @@ export const BlogPostDetails: React.FC<BlogPostDetailsProps> = ({
   onIncrementViews
 }) => {
   const post = blogs.find(b => b.slug === slug);
+  const [readingProgress, setReadingProgress] = useState(0);
 
-  // Increment view count simulation
+  // Increment view count
   useEffect(() => {
     if (post) {
       onIncrementViews(post.slug);
@@ -44,9 +45,23 @@ export const BlogPostDetails: React.FC<BlogPostDetailsProps> = ({
     }
   }, [post]);
 
+  // Reading progress bar
+  const handleScroll = useCallback(() => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    setReadingProgress(Math.min(progress, 100));
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
+
   if (!post) {
     return (
-      <div className="container text-center" style={{ padding: '6rem 2rem' }}>
+      <div className="container" style={{ padding: '6rem 2rem', textAlign: 'center' }}>
+        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📖</div>
         <h2>Article Not Found</h2>
         <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>The article you are trying to read does not exist or has been removed.</p>
         <button onClick={onBack} className="btn btn-primary">
@@ -61,7 +76,7 @@ export const BlogPostDetails: React.FC<BlogPostDetailsProps> = ({
   const prevPost = currentIndex > 0 ? blogs[currentIndex - 1] : null;
   const nextPost = currentIndex < blogs.length - 1 ? blogs[currentIndex + 1] : null;
 
-  // Custom Markdown Parser for high-fidelity rendering
+  // Custom Markdown Parser
   const parseMarkdown = (text: string) => {
     const lines = text.split('\n');
     const elements: React.ReactNode[] = [];
@@ -75,7 +90,7 @@ export const BlogPostDetails: React.FC<BlogPostDetailsProps> = ({
         elements.push(
           <ul key={key} style={{ marginLeft: '1.5rem', marginBottom: '1.5rem', listStyleType: 'disc' }}>
             {listItems.map((item, idx) => (
-              <li key={idx} style={{ marginBottom: '0.5rem', color: 'var(--text-main)' }} dangerouslySetInnerHTML={{ __html: inlineStyle(item) }} />
+              <li key={idx} style={{ marginBottom: '0.5rem', color: 'var(--text-main)', lineHeight: '1.7' }} dangerouslySetInnerHTML={{ __html: inlineStyle(item) }} />
             ))}
           </ul>
         );
@@ -85,16 +100,15 @@ export const BlogPostDetails: React.FC<BlogPostDetailsProps> = ({
 
     const flushTable = (key: string) => {
       if (tableRows.length > 0) {
-        // Table parsing
         const headers = tableRows[0];
-        const bodyRows = tableRows.slice(2); // row 1 is separator |---|---|
+        const bodyRows = tableRows.slice(2);
         elements.push(
-          <div key={key} style={{ overflowX: 'auto', marginBottom: '1.5rem' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
+          <div key={key} style={{ overflowX: 'auto', marginBottom: '1.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{ backgroundColor: 'var(--primary-light)' }}>
                   {headers.map((h, i) => (
-                    <th key={i} style={{ padding: '10px 15px', border: '1px solid var(--border-color)', fontWeight: 700, color: 'var(--primary)', textAlign: 'left' }}>
+                    <th key={i} style={{ padding: '10px 15px', borderBottom: '2px solid var(--border-color)', fontWeight: 700, color: 'var(--primary)', textAlign: 'left' }}>
                       {h.trim()}
                     </th>
                   ))}
@@ -104,7 +118,7 @@ export const BlogPostDetails: React.FC<BlogPostDetailsProps> = ({
                 {bodyRows.map((row, rIdx) => (
                   <tr key={rIdx} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     {row.map((cell, cIdx) => (
-                      <td key={cIdx} style={{ padding: '10px 15px', border: '1px solid var(--border-color)', color: 'var(--text-main)' }} dangerouslySetInnerHTML={{ __html: inlineStyle(cell.trim()) }} />
+                      <td key={cIdx} style={{ padding: '10px 15px', color: 'var(--text-main)' }} dangerouslySetInnerHTML={{ __html: inlineStyle(cell.trim()) }} />
                     ))}
                   </tr>
                 ))}
@@ -119,7 +133,18 @@ export const BlogPostDetails: React.FC<BlogPostDetailsProps> = ({
     const flushCodeBlock = (key: string) => {
       if (codeContent.length > 0) {
         elements.push(
-          <pre key={key} style={{ backgroundColor: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1rem', overflowX: 'auto', marginBottom: '1.5rem', fontFamily: 'Courier, monospace', fontSize: '0.875rem', color: 'var(--text-main)' }}>
+          <pre key={key} style={{
+            backgroundColor: 'var(--bg-main)',
+            border: '1px solid var(--border-color)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '1.25rem',
+            overflowX: 'auto',
+            marginBottom: '1.5rem',
+            fontFamily: "'JetBrains Mono', Courier, monospace",
+            fontSize: '0.85rem',
+            color: 'var(--text-main)',
+            lineHeight: '1.6',
+          }}>
             <code>{codeContent.join('\n')}</code>
           </pre>
         );
@@ -131,14 +156,13 @@ export const BlogPostDetails: React.FC<BlogPostDetailsProps> = ({
       return str
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`(.*?)`/g, '<code style="background-color: var(--border-color); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; font-family: monospace;">$1</code>');
+        .replace(/`(.*?)`/g, '<code style="background-color: var(--primary-light); padding: 2px 7px; border-radius: 5px; font-size: 0.88em; font-family: monospace; color: var(--primary);">$1</code>');
     };
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
       const rawLine = lines[i];
 
-      // Code Block
       if (line.startsWith('```')) {
         if (isCodeBlock) {
           isCodeBlock = false;
@@ -151,247 +175,229 @@ export const BlogPostDetails: React.FC<BlogPostDetailsProps> = ({
         continue;
       }
 
-      if (isCodeBlock) {
-        codeContent.push(rawLine);
-        continue;
-      }
+      if (isCodeBlock) { codeContent.push(rawLine); continue; }
 
-      // Headers
       if (line.startsWith('## ')) {
-        flushList(`list-h2-${i}`);
-        flushTable(`table-h2-${i}`);
-        elements.push(<h2 key={`h2-${i}`} style={{ fontSize: '1.75rem', fontWeight: 800, marginTop: '2.5rem', marginBottom: '1rem', color: 'var(--text-main)' }}>{line.slice(3)}</h2>);
+        flushList(`list-h2-${i}`); flushTable(`table-h2-${i}`);
+        elements.push(<h2 key={`h2-${i}`} style={{ fontSize: '1.65rem', fontWeight: 800, marginTop: '2.5rem', marginBottom: '1rem' }}>{line.slice(3)}</h2>);
       } else if (line.startsWith('### ')) {
-        flushList(`list-h3-${i}`);
-        flushTable(`table-h3-${i}`);
-        elements.push(<h3 key={`h3-${i}`} style={{ fontSize: '1.35rem', fontWeight: 700, marginTop: '2rem', marginBottom: '0.75rem', color: 'var(--text-main)' }}>{line.slice(4)}</h3>);
+        flushList(`list-h3-${i}`); flushTable(`table-h3-${i}`);
+        elements.push(<h3 key={`h3-${i}`} style={{ fontSize: '1.3rem', fontWeight: 700, marginTop: '2rem', marginBottom: '0.75rem' }}>{line.slice(4)}</h3>);
       } else if (line.startsWith('#### ')) {
-        flushList(`list-h4-${i}`);
-        flushTable(`table-h4-${i}`);
-        elements.push(<h4 key={`h4-${i}`} style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>{line.slice(5)}</h4>);
-      } 
-      // Blockquotes
-      else if (line.startsWith('> ')) {
-        flushList(`list-quote-${i}`);
-        flushTable(`table-quote-${i}`);
+        flushList(`list-h4-${i}`); flushTable(`table-h4-${i}`);
+        elements.push(<h4 key={`h4-${i}`} style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: '1.5rem', marginBottom: '0.5rem' }}>{line.slice(5)}</h4>);
+      } else if (line.startsWith('> ')) {
+        flushList(`list-quote-${i}`); flushTable(`table-quote-${i}`);
         elements.push(
-          <blockquote 
-            key={`quote-${i}`} 
-            style={{ 
-              borderLeft: '4px solid var(--primary)', 
-              padding: '1rem 1.5rem', 
-              background: 'var(--primary-light)', 
-              borderRadius: '0 var(--radius-md) var(--radius-md) 0',
+          <blockquote
+            key={`quote-${i}`}
+            style={{
+              borderLeft: '4px solid var(--primary)',
+              padding: '1rem 1.5rem',
+              background: 'var(--primary-light)',
+              borderRadius: '0 var(--radius-sm) var(--radius-sm) 0',
               fontStyle: 'italic',
               marginBottom: '1.5rem',
               color: 'var(--text-main)',
-              fontSize: '1rem'
+              fontSize: '1rem',
+              lineHeight: '1.7',
             }}
             dangerouslySetInnerHTML={{ __html: inlineStyle(line.slice(2)) }}
           />
         );
-      }
-      // Table rows
-      else if (line.startsWith('|')) {
+      } else if (line.startsWith('|')) {
         flushList(`list-table-${i}`);
         const cells = line.split('|').map(c => c.trim()).filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
         tableRows.push(cells);
-      }
-      // Bullet points
-      else if (line.startsWith('* ') || line.startsWith('- ')) {
+      } else if (line.startsWith('* ') || line.startsWith('- ')) {
         flushTable(`table-list-${i}`);
         listItems.push(line.slice(2));
-      }
-      // Empty lines
-      else if (line === '') {
-        flushList(`list-empty-${i}`);
-        flushTable(`table-empty-${i}`);
-      }
-      // Regular Paragraphs
-      else {
-        flushList(`list-para-${i}`);
-        flushTable(`table-para-${i}`);
+      } else if (line === '') {
+        flushList(`list-empty-${i}`); flushTable(`table-empty-${i}`);
+      } else {
+        flushList(`list-para-${i}`); flushTable(`table-para-${i}`);
         elements.push(
-          <p 
-            key={`p-${i}`} 
-            style={{ 
-              marginBottom: '1.25rem', 
-              fontSize: '1.05rem', 
-              color: 'var(--text-muted)', 
-              lineHeight: '1.75' 
-            }}
+          <p key={`p-${i}`} style={{ marginBottom: '1.25rem', fontSize: '1.02rem', color: 'var(--text-muted)', lineHeight: '1.8' }}
             dangerouslySetInnerHTML={{ __html: inlineStyle(line) }}
           />
         );
       }
     }
 
-    // Final flushes
-    flushList('list-final');
-    flushTable('table-final');
-    flushCodeBlock('code-final');
-
+    flushList('list-final'); flushTable('table-final'); flushCodeBlock('code-final');
     return elements;
   };
 
   return (
-    <div className="container animate-fade-in" style={{ padding: '2rem 1.5rem 5rem', textAlign: 'left' }}>
-      
-      {/* Back Button */}
-      <button 
-        onClick={onBack} 
-        className="btn btn-secondary btn-sm flex items-center gap-1.5"
-        style={{ marginBottom: '2rem', border: 'none', background: 'transparent', padding: 0 }}
-      >
-        <ArrowLeft size={16} /> Back to Library
-      </button>
+    <>
+      {/* Reading Progress Bar */}
+      <div className="reading-progress" style={{ width: `${readingProgress}%` }} />
 
-      {/* Main Layout Grid */}
-      <div className="grid" style={{ gridTemplateColumns: '1fr 340px', gap: '2.5rem' }} id="article-layout">
-        
-        {/* Article content */}
-        <main className="card" style={{ padding: '2.5rem' }}>
-          {/* Metadata Top */}
-          <div className="flex items-center gap-2" style={{ marginBottom: '1rem' }}>
-            <span className="badge badge-primary">{post.category}</span>
-          </div>
+      <div className="container animate-fade-in" style={{ padding: '2rem 1.5rem 5rem', textAlign: 'left' }}>
 
-          <h1 style={{ fontSize: '2.4rem', fontWeight: 850, lineHeight: '1.2', marginBottom: '1.5rem', color: 'var(--text-main)' }}>
-            {post.title}
-          </h1>
+        {/* Back */}
+        <button
+          onClick={onBack}
+          className="btn btn-ghost flex items-center gap-2"
+          style={{ marginBottom: '2rem', padding: '0.5rem 0', color: 'var(--text-muted)' }}
+        >
+          <ArrowLeft size={16} /> Back to Library
+        </button>
 
-          <div 
-            className="flex items-center justify-between"
-            style={{
-              borderBottom: '1px solid var(--border-color)',
-              paddingBottom: '1.5rem',
-              marginBottom: '2rem',
-              flexWrap: 'wrap',
-              gap: '1rem',
-              fontSize: '0.9rem',
-              color: 'var(--text-muted)'
-            }}
-          >
-            <div className="flex items-center gap-4 flex-wrap">
-              <span className="flex items-center gap-1.5"><User size={16} /> By <strong>{post.author}</strong></span>
-              <span className="flex items-center gap-1.5"><Calendar size={16} /> {post.publishedAt}</span>
-              <span className="flex items-center gap-1.5"><Clock size={16} /> {post.readTime}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Eye size={16} />
-              <span>{post.views} views</span>
-            </div>
-          </div>
+        {/* Main Layout */}
+        <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: '2.5rem' }} id="article-layout">
 
-          {/* Article Banner Ad */}
-          <AdBanner format="inline" />
-
-          {/* Video walkthrough (shows only if a video is attached) */}
-          {post.videoId && (
-            <div style={{ marginTop: '2rem' }}>
-              <VideoEmbed video={post.videoId} title={post.title} />
-            </div>
-          )}
-
-          {/* Dynamic Article Body */}
-          <div className="prose" style={{ marginTop: '2rem' }}>
-            {parseMarkdown(post.content)}
-          </div>
-
-          {/* Share Block */}
-          <div 
-            className="flex items-center justify-between"
-            style={{ 
-              borderTop: '1px solid var(--border-color)', 
-              paddingTop: '2rem', 
-              marginTop: '3rem',
-              flexWrap: 'wrap',
-              gap: '1rem'
-            }}
-          >
-            <h4 style={{ fontSize: '1rem' }} className="flex items-center gap-2">
-              <Share2 size={16} /> Share this Guide
-            </h4>
-            <ShareButtons title={post.title} />
-          </div>
-
-          {/* Next/Prev Navigation */}
-          <div 
-            className="flex justify-between items-center"
-            style={{ 
-              borderTop: '1px solid var(--border-color)', 
-              paddingTop: '2rem', 
-              marginTop: '2.5rem',
-              gap: '2rem',
-              flexWrap: 'wrap'
-            }}
-          >
-            {prevPost ? (
-              <button 
-                onClick={() => onSelectBlog(prevPost.slug)}
-                className="btn btn-secondary flex flex-col items-start gap-1"
-                style={{ textAlign: 'left', maxWidth: '45%', alignItems: 'flex-start', padding: '1rem' }}
+          {/* Article */}
+          <main className="card" style={{ padding: '2.5rem' }}>
+            <div className="flex items-center gap-2" style={{ marginBottom: '1rem' }}>
+              <span
+                className="badge"
+                style={{
+                  background: 'var(--gradient-brand)',
+                  color: 'var(--text-light)',
+                  padding: '0.35rem 0.8rem',
+                }}
               >
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>&larr; PREVIOUS GUIDE</span>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, whiteSpace: 'normal', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{prevPost.title}</span>
-              </button>
-            ) : <div />}
+                {post.category}
+              </span>
+            </div>
 
-            {nextPost ? (
-              <button 
-                onClick={() => onSelectBlog(nextPost.slug)}
-                className="btn btn-secondary flex flex-col items-end gap-1"
-                style={{ textAlign: 'right', maxWidth: '45%', alignItems: 'flex-end', padding: '1rem', marginLeft: 'auto' }}
-              >
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>NEXT GUIDE &rarr;</span>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, whiteSpace: 'normal', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{nextPost.title}</span>
-              </button>
-            ) : <div />}
-          </div>
+            <h1 style={{ fontSize: '2.2rem', fontWeight: 900, lineHeight: '1.2', marginBottom: '1.5rem', letterSpacing: '-0.025em' }}>
+              {post.title}
+            </h1>
 
-        </main>
+            <div
+              className="flex items-center justify-between"
+              style={{
+                borderBottom: '1px solid var(--border-color)',
+                paddingBottom: '1.5rem',
+                marginBottom: '2rem',
+                flexWrap: 'wrap',
+                gap: '1rem',
+                fontSize: '0.85rem',
+                color: 'var(--text-muted)',
+              }}
+            >
+              <div className="flex items-center gap-4" style={{ flexWrap: 'wrap' }}>
+                <span className="flex items-center gap-1"><User size={15} /> By <strong>{post.author}</strong></span>
+                <span className="flex items-center gap-1"><Calendar size={15} /> {post.publishedAt}</span>
+                <span className="flex items-center gap-1"><Clock size={15} /> {post.readTime}</span>
+              </div>
+              <span className="flex items-center gap-1">
+                <Eye size={15} /> {post.views.toLocaleString()} views
+              </span>
+            </div>
 
-        {/* Sidebar Ads and Signup */}
-        <aside className="flex flex-col gap-6">
-          
-          <div className="card text-center flex flex-col gap-4" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, hsl(200, 95%, 45%) 100%)', color: 'white' }}>
-            <BookOpen size={48} style={{ margin: '0 auto', opacity: 0.8 }} />
-            <h3 style={{ fontSize: '1.25rem', color: 'white' }}>Subscribe to Alerts</h3>
-            <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)' }}>
-              Never miss a fully funded deadline again. We send direct portal links straight to your phone.
-            </p>
-            {siteConfig.social.whatsappChannel ? (
-              <a
-                href={siteConfig.social.whatsappChannel}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-sm w-full"
-                style={{ background: 'white', color: '#128C7E', border: 'none', fontWeight: 700 }}
-              >
-                Join WhatsApp Channel
-              </a>
-            ) : (
-              <button className="btn btn-secondary btn-sm w-full" style={{ background: 'white', color: 'var(--primary)', border: 'none' }}>
-                Subscribe Free
-              </button>
+            <AdBanner format="inline" />
+
+            {post.videoId && (
+              <div style={{ marginTop: '2rem' }}>
+                <VideoEmbed video={post.videoId} title={post.title} />
+              </div>
             )}
-          </div>
 
-          <AdBanner format="sidebar" />
-          <AdBanner format="sidebar" customText="Write essays with AI helper!" link="#" />
+            {/* Article Body */}
+            <div className="prose" style={{ marginTop: '2rem' }}>
+              {parseMarkdown(post.content)}
+            </div>
 
-        </aside>
+            {/* Share */}
+            <div
+              className="flex items-center justify-between"
+              style={{
+                borderTop: '1px solid var(--border-color)',
+                paddingTop: '2rem',
+                marginTop: '3rem',
+                flexWrap: 'wrap',
+                gap: '1rem',
+              }}
+            >
+              <h4 style={{ fontSize: '0.95rem' }} className="flex items-center gap-2">
+                <Share2 size={15} /> Share this Guide
+              </h4>
+              <ShareButtons title={post.title} />
+            </div>
 
-      </div>
+            {/* Prev/Next */}
+            <div
+              className="flex justify-between items-center"
+              style={{
+                borderTop: '1px solid var(--border-color)',
+                paddingTop: '2rem',
+                marginTop: '2rem',
+                gap: '1.5rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              {prevPost ? (
+                <button
+                  onClick={() => onSelectBlog(prevPost.slug)}
+                  className="btn btn-secondary flex flex-col items-start gap-1"
+                  style={{ textAlign: 'left', maxWidth: '45%', alignItems: 'flex-start', padding: '1rem', borderRadius: 'var(--radius-sm)' }}
+                >
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>← Previous</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, whiteSpace: 'normal', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{prevPost.title}</span>
+                </button>
+              ) : <div />}
 
-      <style>{`
-        @media (max-width: 900px) {
-          #article-layout {
-            grid-template-columns: 1fr !important;
+              {nextPost ? (
+                <button
+                  onClick={() => onSelectBlog(nextPost.slug)}
+                  className="btn btn-secondary flex flex-col items-end gap-1"
+                  style={{ textAlign: 'right', maxWidth: '45%', alignItems: 'flex-end', padding: '1rem', marginLeft: 'auto', borderRadius: 'var(--radius-sm)' }}
+                >
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Next →</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, whiteSpace: 'normal', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{nextPost.title}</span>
+                </button>
+              ) : <div />}
+            </div>
+          </main>
+
+          {/* Sidebar */}
+          <aside className="flex flex-col gap-6">
+            <div
+              className="card flex flex-col gap-4"
+              style={{
+                background: 'var(--gradient-brand)',
+                color: 'white',
+                textAlign: 'center',
+                padding: '2rem 1.5rem',
+              }}
+            >
+              <BookOpen size={44} style={{ margin: '0 auto', opacity: 0.5 }} />
+              <h3 style={{ fontSize: '1.15rem', color: 'white', fontWeight: 700 }}>Never Miss a Deadline</h3>
+              <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.85)', lineHeight: '1.6' }}>
+                Get direct portal links sent straight to your phone when scholarships open.
+              </p>
+              {siteConfig.social.whatsappChannel ? (
+                <a
+                  href={siteConfig.social.whatsappChannel}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-sm w-full"
+                  style={{ background: 'white', color: '#128C7E', border: 'none', fontWeight: 700, borderRadius: 'var(--radius-sm)' }}
+                >
+                  Join WhatsApp Channel
+                </a>
+              ) : (
+                <button className="btn btn-sm w-full" style={{ background: 'white', color: 'var(--primary)', border: 'none', fontWeight: 700, borderRadius: 'var(--radius-sm)' }}>
+                  Subscribe Free
+                </button>
+              )}
+            </div>
+
+            <AdBanner format="sidebar" />
+            <AdBanner format="sidebar" customText="Write essays with AI helper!" link="#" />
+          </aside>
+        </div>
+
+        <style>{`
+          @media (max-width: 900px) {
+            #article-layout { grid-template-columns: 1fr !important; }
           }
-        }
-      `}</style>
-    </div>
+        `}</style>
+      </div>
+    </>
   );
 };
 export default BlogPostDetails;
