@@ -329,7 +329,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           } else {
             showNotification('Invalid file structure. Make sure you import a valid ScholarSphere backup.', 'error');
           }
-        } catch (err) {
+        } catch {
           showNotification('Error parsing JSON backup file.', 'error');
         }
       };
@@ -612,7 +612,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* Level Select */}
                 <div className="form-group">
                   <label className="label">Degree Level *</label>
-                  <select value={sLevel} onChange={(e) => setSLevel(e.target.value as any)} className="select">
+                  <select value={sLevel} onChange={(e) => setSLevel(e.target.value as Scholarship['degreeLevel'])} className="select">
                     <option value="undergraduate">Undergraduate</option>
                     <option value="postgraduate">Postgraduate (Master\'s)</option>
                     <option value="phd">PhD / Doctorate</option>
@@ -623,7 +623,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* Funding Type Select */}
                 <div className="form-group">
                   <label className="label">Funding Coverage *</label>
-                  <select value={sFunding} onChange={(e) => setSFunding(e.target.value as any)} className="select">
+                  <select value={sFunding} onChange={(e) => setSFunding(e.target.value as Scholarship['fundingType'])} className="select">
                     <option value="fully_funded">Fully Funded (Tuition + Stipend)</option>
                     <option value="partial_funded">Partial Funding</option>
                     <option value="tuition_waiver">Tuition Waiver Only</option>

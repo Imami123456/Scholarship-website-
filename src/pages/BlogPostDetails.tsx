@@ -30,6 +30,7 @@ export const BlogPostDetails: React.FC<BlogPostDetailsProps> = ({
     if (post) {
       onIncrementViews(post.slug);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   // SEO Injection

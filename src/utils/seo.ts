@@ -72,7 +72,7 @@ export function updateSEO({
     document.head.appendChild(ldJsonScript);
   }
 
-  let schemaJson: any = {
+  let schemaJson: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     'name': 'ScholarSphere',

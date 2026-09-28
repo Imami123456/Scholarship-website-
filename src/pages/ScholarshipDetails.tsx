@@ -29,6 +29,7 @@ export const ScholarshipDetails: React.FC<ScholarshipDetailsProps> = ({
     if (scholarship) {
       onIncrementViews(scholarship.id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scholarshipId]);
 
   // SEO Injection

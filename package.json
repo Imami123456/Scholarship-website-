@@ -1,12 +1,16 @@
 {
-  "name": "ddd",
+  "name": "scholarsphere",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "International scholarship discovery engine, application guide publisher, and in-browser content management system built with React 19, TypeScript, and Vite.",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -24,8 +28,10 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "happy-dom": "^20.14.5",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "vitest": "^4.1.11"
   }
 }
